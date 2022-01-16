@@ -1,0 +1,13 @@
+header 
+    span Webster
+    nav 
+        ul                     
+            li 
+                a(href="/videos/upload") Upload Video
+            if videoPage
+                li 
+                    form(action="/filter")
+                        input(type="text", placeholder="Search", name="title")
+                        input(type="text", placeholder="Filter", name="ticker")
+                        input(type="submit", value="Search")
+    h1=pageTitle
