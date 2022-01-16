@@ -2,7 +2,7 @@ import { getVideoByTicker } from "../db";
 
 export let videoList = [
   {
-    title: "What is crypto?",
+    title: "What is ?",
     rating: 5,
     comments: 2,
     createdAt: "2 minutes ago",
