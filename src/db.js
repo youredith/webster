@@ -18,7 +18,7 @@ export const getVideoByTitle = title => {
     if(!title) {
         throw Error("❌ YOU FORGOT TO PASS THE TITLE.")
     }
-    return videos.find(m => m.title === title);
+    return videoList.filter(m => m.title === title);
 }
 
 db.on("error", handleError);

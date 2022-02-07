@@ -1,13 +1,27 @@
 header 
-    span Webster
+    a(href="/") Webster
     nav 
-        ul                     
-            li 
-                a(href="/videos/upload") Upload Video
-            if videoPage
+        ul
+            if(path != "/videos")       
                 li 
-                    form(action="/filter")
+                    a(href="/videos") Video            
+            li 
+                a(href="/games") Games
+            li 
+                a(href="/twitter") Twitter
+            li 
+                a(href="/market") Market
+            li 
+                a(href="/nft") NFT                                   
+            if (path === "/videos")
+                li 
+                    form(action="/videos/filter")
                         input(type="text", placeholder="Search", name="title")
                         input(type="text", placeholder="Filter", name="ticker")
                         input(type="submit", value="Search")
+                li 
+                    a(href="/videos/upload") Upload Video
+            li 
+                a(href="/login") login
+                             
     h1=pageTitle
