@@ -2,7 +2,7 @@ import express from "express";
 import globalRouter from "./routers/globalRouter";
 import userRouter from "./routers/userRouter";
 import videoRouter from "./routers/videoRouter";
-import { logger, privateMiddleware, handleProtected, localsMiddleware, filter } from "./middlewares";
+import { logger, privateMiddleware, handleProtected, localsMiddleware } from "./middlewares";
 
 const app = express();
 

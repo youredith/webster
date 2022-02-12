@@ -1,4 +1,14 @@
-export let videoList = [];
+import Video from "../models/Video";
+
+export const home = async (req, res) => {
+  try{
+    Video.find({}, (error, videos) => {
+      return res.render("home", { pageTitle: "Home" });
+    });
+  } catch(error) {
+      return res.render("server-error", {error});
+  };    
+};
 
 export const videos = (req, res) => {
   return res.render("videos", { pageTitle: "Videos Page" });
@@ -20,7 +30,20 @@ export const postEdit = (req, res) => {
 export const getUpload = (req, res) => {
   return res.render("upload", { pageTitle: "Upload Video" });
 };
-export const postUpload = (req, res) => {
-  const { title } = req.body; 
+export const postUpload = async (req, res) => {
+  const { title, description, hashtags, tickers } = req.body;
+  const video = new Video({
+    title: title,
+    description: description,
+    createdAt: Date.now(),
+    hashtags: hashtags.split(",").map((word) => `#${word}`),
+    tickers: tickers.split(",").map((word) => `${word}`),
+    meta: {
+      views: 0,
+      ratings: 0,
+    },
+  });
+  const dbVideo = await video.save();
+  console.log(dbVideo);
   return res.redirect("/");
 };

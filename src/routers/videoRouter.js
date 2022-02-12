@@ -15,6 +15,5 @@ videoRouter.get("/", videos);
 videoRouter.get("/:id(\\d+)", watch);
 videoRouter.route("/:id(\\d+)/edit").get(getEdit).post(postEdit);
 videoRouter.route("/upload").get(getUpload).post(postUpload);
-videoRouter.get("/filter", filterVideo);
 
 export default videoRouter;

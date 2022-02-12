@@ -4,4 +4,7 @@ block content
     h4 Upload Video
     form(method="POST", action="/videos/upload")
         input(placeholder="Title", required, type="text", name="title")
+        input(placeholder="Description", type="text", name="description")
+        input(placeholder="Hashtags, separated by comma.", required, type="text", name="hashtags")
+        input(placeholder="Tickers, separated by comma.", required, type="Text", name="tickers")
         input(type="submit", value="Upload Video")
