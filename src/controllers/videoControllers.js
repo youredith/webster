@@ -1,29 +1,24 @@
 import Video from "../models/Video";
 
-export const home = async (req, res) => {
-  try{
-    Video.find({}, (error, videos) => {
-      return res.render("home", { pageTitle: "Home" });
-    });
-  } catch(error) {
-      return res.render("server-error", {error});
-  };    
+export const home = (req, res) => {
+  return res.render("home", { pageTitle: "Home" });
 };
 
-export const videos = (req, res) => {
-  return res.render("videos", { pageTitle: "Videos Page" });
+export const videos = async (req, res) => {
+  const videos = await Video.find({});
+  return res.render("videos", { pageTitle: "Videos", videos });
 };
-export const watch = (req, res) => {  
-  return res.render("watch", { pageTitle: `Watching` });  
+export const watch = async (req, res) => {
+  const id = req.params;
+  const video = await Video.findById(id);  
+  return res.render("watch", { pageTitle: `Watching`, video });  
 };
 
 export const getEdit = (req, res) => {
-  const { id } = req.params;
   return res.render("edit", { pageTitle: `Editing: ${video.title}`, video });  
 };
 export const postEdit = (req, res) => {
   const { id } = req.params;
-  const { title } = req.body;
   return res.redirect(`/videos/${id}`);
 };
 
@@ -32,18 +27,23 @@ export const getUpload = (req, res) => {
 };
 export const postUpload = async (req, res) => {
   const { title, description, hashtags, tickers } = req.body;
-  const video = new Video({
-    title: title,
-    description: description,
-    createdAt: Date.now(),
-    hashtags: hashtags.split(",").map((word) => `#${word}`),
-    tickers: tickers.split(",").map((word) => `${word}`),
-    meta: {
-      views: 0,
-      ratings: 0,
-    },
-  });
-  const dbVideo = await video.save();
-  console.log(dbVideo);
-  return res.redirect("/");
+  try {
+    await Video.create({
+      title,
+      description,
+      hashtags: hashtags.split(",").map((word) => `#${word}`),
+      tickers: tickers.split(",").map((word) => `${word}`),
+      meta: {
+        views: 0,
+        ratings: 0,
+      },
+    });
+    return res.redirect("/");
+  } catch(error) {
+    console.log(error);
+    return res.render("upload", {
+      pageTitle: "Upload Video",
+      errorMessage: error._message,
+    });
+  }
 };
