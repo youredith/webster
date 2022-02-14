@@ -1,7 +1,11 @@
 extends base.pug
 
 block content 
-    h4 Change Title of Video 
-    form(action="/", method="POST")
-        input(placeholder="Video Title", value=video.title, required )
+    h4 Update Video 
+    form(method="POST")
+        input(placeholder="Video Title", value=video.title, required, name="title")
+        input(placeholder="Description", value=video.description, name="description")
+        input(placeholder="Hashtags, separated by comma.", value=video.hashtags.join(), name="hashtags")
+        input(placeholder="Tickers, separated by comma.", value=video.tickers.join(), name="tickers")
         input(value="Save", type="submit")
+    a(href=`/videos/${video.id}/delete`) Delete Video &rarr;

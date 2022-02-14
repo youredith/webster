@@ -13,7 +13,6 @@ export const privateMiddleware = (req, res, next) => {
     if(url === "/protected") {
         return res.send("<h1>Not Allowed</h1>");
     }
-    console.log("Allowed, you may continue.");
     next();
 };
 
