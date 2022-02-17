@@ -70,3 +70,22 @@ export const postUpload = async (req, res) => {
   }
 };
 
+export const search = async (req, res) => {
+  const { title, ticker } = req.query;
+  let videos = [];
+
+  if ( title === '' && ticker === '' ) {
+    return res.render("search", { pageTitle: `Please type any keyword for search`, videos });
+  } else if ( title || ticker ) {
+   videos = await Video.find({
+    title: {
+      $regex: new RegExp(`${title}$`, "i"),
+    },
+    tickers: {
+      $regex: [new RegExp(ticker, "i")],
+    }
+   }); 
+   console.log(req.query);
+}
+return res.render("search", { pageTitle: `Searching for : ${title} ${ticker}`, videos });
+};

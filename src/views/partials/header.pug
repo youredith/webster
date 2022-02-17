@@ -15,13 +15,12 @@ header
                 a(href="/nft") NFT                                   
             if (path === "/videos")
                 li 
-                    form(action="/videos/filter")
-                        input(type="text", placeholder="Search", name="title")
-                        input(type="text", placeholder="Filter", name="ticker")
+                    form(method="GET", action="/videos/search")
+                        input(type="text", placeholder="Title", name="title")
+                        input(type="text", placeholder="Ticker", name="ticker")
                         input(type="submit", value="Search")
                 li 
                     a(href="/videos/upload") Upload Video
             li 
-                a(href="/login") login
-                             
+                a(href="/login") login                             
     h1=pageTitle
