@@ -4,7 +4,7 @@ const videoSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: String,
     createdAt: { type: Date, required: true, default: Date.now },
-    tickers: [{type: String, required: true, trim: true, uppercase: true, default: "all" }],
+    tickers: [{type: String, required: true, trim: true, uppercase: true }],
     hashtags: [{ type: String, trim: true }],
     meta: {
         views: { type: Number },
