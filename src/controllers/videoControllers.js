@@ -70,28 +70,33 @@ export const postUpload = async (req, res) => {
   }
 };
 
-export const search = async (req, res) => {
-  const { title, ticker } = req.query;
-  let videos = [];
+export const search = async (req, res) => {  
+  const title = req.query.title;
+  const tickers = req.query.ticker.split(",");
+  console.log(title);
+  console.log(tickers);  
+  console.log(tickers.length);
+  let videos = []; 
+
   try{
-    if ( title || ticker ) {
+    if ( title || tickers ) {
       videos = await Video.find({
         title: {
           $regex: new RegExp(`${title}$`, "i"),
         },
-        tickers: {
-          $regex: [new RegExp(ticker, "i")],
-      }
+        tickers: { $all: tickers }
      }); 
      console.log(req.query);
-    } else if ( title === '' && ticker === '' ) {
-      return res.render("search", { pageTitle: `Please type any keyword for search`, videos });      
-    }
-  return res.render("search", { pageTitle: `Searching for : ${title} ${ticker}`, videos });    
-  } catch {
-    console.log(req.query);
-    return res.render("404", { pageTitle: `Something went wrong.` });
-  }
+     console.log(typeof tickers);
+     console.log(typeof title.length);
 
-  
+    } else if ( tickers.length === 1 ) {
+      return res.render("search", { pageTitle: `Please type any keyword for search` });      
+    }
+  return res.render("search", { pageTitle: `Searching for : ${title} ${tickers}`, videos });    
+  } catch (e) {    
+    console.log(e);
+    return res.render("404", { pageTitle: `Something went wrong.` });
+  }   
 };
+
