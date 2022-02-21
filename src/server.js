@@ -1,5 +1,5 @@
 import express from "express";
-import globalRouter from "./routers/globalRouter";
+import rootRouter from "./routers/rootRouter";
 import userRouter from "./routers/userRouter";
 import videoRouter from "./routers/videoRouter";
 import { logger, privateMiddleware, handleProtected, localsMiddleware } from "./middlewares";
@@ -14,7 +14,7 @@ app.use(privateMiddleware);
 app.use(localsMiddleware);
 app.get("/protected", handleProtected);
 
-app.use("/", globalRouter);
+app.use("/", rootRouter);
 app.use("/users", userRouter);
 app.use("/videos", videoRouter);
 

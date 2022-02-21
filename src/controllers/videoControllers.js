@@ -79,19 +79,15 @@ export const search = async (req, res) => {
   let videos = []; 
 
   try{
-    if ( title || tickers ) {
+    if ( title === "" && tickers.length === 1 && tickers.includes("") ) {
+      return res.render("search", { pageTitle: `Please type any keyword for search`, videos });      
+    } else {
       videos = await Video.find({
         title: {
           $regex: new RegExp(`${title}$`, "i"),
         },
         tickers: { $all: tickers }
-     }); 
-     console.log(req.query);
-     console.log(typeof tickers);
-     console.log(typeof title.length);
-
-    } else if ( tickers.length === 1 ) {
-      return res.render("search", { pageTitle: `Please type any keyword for search` });      
+     });        
     }
   return res.render("search", { pageTitle: `Searching for : ${title} ${tickers}`, videos });    
   } catch (e) {    
