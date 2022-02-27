@@ -87,7 +87,7 @@ export const search = async (req, res) => {
         tickers: { $all: tickersArray }
      });        
     }
-  return res.render("search", { pageTitle: `Searching for : ${title} ${tickersArray}`, videos, searchURL });    
+  return res.render("search", { pageTitle: `Searching for : ${title} ${tickers.toUpperCase()}`, videos });    
   } catch (e) {    
     console.log(e);
     return res.status(404).render("404", { pageTitle: `Something went wrong.` });
