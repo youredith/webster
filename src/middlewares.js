@@ -3,6 +3,8 @@ import morgan from "morgan";
 export const localsMiddleware = (req, res, next) => {
     res.locals.siteTitle = "Websters";
     res.locals.path = req.path;
+    res.locals.loggedInUser = req.session.user;
+    console.log(res.locals);
     next();
 };
 

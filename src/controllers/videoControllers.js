@@ -9,7 +9,7 @@ export const watch = async (req, res) => {
   const { id } = req.params;
   const video = await Video.findById(id);
   if (!video) {
-    return res.render("404", { pageTitle: "Video not found."});
+    return res.status(404).render("404", { pageTitle: "Video not found."});
   }
   return res.render("watch", { pageTitle: video.title , video });  
 };
@@ -18,7 +18,7 @@ export const getEdit = async (req, res) => {
   const { id } = req.params;
   const video = await Video.findById(id);
   if (!video) {
-    return res.render("404", { pageTitle: "Video not found."});
+    return res.status(404).render("404", { pageTitle: "Video not found."});
   }
   return res.render("edit", { pageTitle: `Edit: ${video.title}`, video });  
 };
@@ -27,7 +27,7 @@ export const postEdit = async (req, res) => {
   const { title, description, hashtags, tickers } = req.body;
   const video = await Video.exists({ _id: id });
   if(!video) {
-    return res.render("404", { pageTitle: "Video not found." });
+    return res.status(404).render("404", { pageTitle: "Video not found." });
   }
   await Video.findByIdAndUpdate(id, {
     title, 
@@ -72,27 +72,25 @@ export const postUpload = async (req, res) => {
 
 export const search = async (req, res) => {  
   const title = req.query.title;
-  const tickers = req.query.ticker.split(",");
-  console.log(title);
-  console.log(tickers);  
-  console.log(tickers.length);
+  const tickers = req.query.ticker;
+  const tickersArray = req.query.ticker.split(",");
   let videos = []; 
 
   try{
-    if ( title === "" && tickers.length === 1 && tickers.includes("") ) {
-      return res.render("search", { pageTitle: `Please type any keyword for search`, videos });      
+    if ( title === "" && tickersArray.length === 1 && tickersArray.includes("") ) {
+      return res.render("search", { pageTitle: `Please type any keyword for search`, videos, title, tickers });      
     } else {
       videos = await Video.find({
         title: {
           $regex: new RegExp(`${title}$`, "i"),
         },
-        tickers: { $all: tickers }
+        tickers: { $all: tickersArray }
      });        
     }
-  return res.render("search", { pageTitle: `Searching for : ${title} ${tickers}`, videos });    
+  return res.render("search", { pageTitle: `Searching for : ${title} ${tickersArray}`, videos, searchURL });    
   } catch (e) {    
     console.log(e);
-    return res.render("404", { pageTitle: `Something went wrong.` });
+    return res.status(404).render("404", { pageTitle: `Something went wrong.` });
   }   
 };
 

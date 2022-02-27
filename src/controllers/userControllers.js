@@ -1,4 +1,5 @@
 import User from "../models/Users";
+import bcrypt from "bcrypt";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
 export const postSignUp = async (req, res) => {
@@ -7,28 +8,56 @@ export const postSignUp = async (req, res) => {
     const exists = await User.exists({ $or: [{ email }, { username }] });
 
     if (exists) {
-        return res.render("sign_up", {
+        return res.status(400).render("sign_up", {
             pageTitle,
             errorMessage: "This username/email is already taken.",
         });
     }
     if (password !== password2) {
-        return res.render("sign_up", {
+        return res.status(400).render("sign_up", {
             pageTitle,
             errorMessage: "Password confirmation does not match.",
         });
     }
 
-    await User.create({
-        email,
-        password,
-        username
-    });
-    return res.redirect("/login");
+    try {
+        await User.create({
+            email,
+            password,
+            username
+        });
+        return res.redirect("/login");
+    } catch(error) {
+        return res.status(400).render("sign_up", {
+            pageTitle,
+            errorMessage: "Password confirmation does not match.",
+        });
+    }    
 };
 
 export const getLogin = (req, res) => res.render("login", { pageTitle: "Login" }); 
+export const postLogin = async (req, res) => {
+    const { email, password } = req.body;
+    const user = await User.findOne( { email });
+    if (!user) {
+        return res.status(400).render("login", {
+            pageTitle: "Login",
+            errorMessage: "An account with this e-mail does not exists."
+        });        
+    }
 
-export const see = (req, res) => res.send("see user");
-export const edit = (req, res) => res.send("edit user");
-export const remove = (req, res) => res.send("remove user");
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) {
+        return res.status(400).render("login", {
+            pageTitle: "Login",
+            errorMessage: "Wrong Password" 
+        });
+    }
+    req.session.loggedIn = true;
+    req.session.user = user;
+    return res.redirect("/");
+};
+
+export const account = (req, res) => {
+    res.render("account", { pageTitle: "Account" });
+};

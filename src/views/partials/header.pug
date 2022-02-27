@@ -13,14 +13,18 @@ header
                 a(href="/market") Market
             li 
                 a(href="/nft") NFT                                   
-            if (path === "/videos")
+            if (path === "/videos" || path === "/videos/search")
                 li 
                     form(method="GET", action="/videos/search")
                         input(type="text", placeholder="Title", name="title")
                         input(type="text", placeholder="Ticker", name="ticker")
                         input(type="submit", value="Search")
                 li 
-                    a(href="/videos/upload") Upload Video
-            li 
-                a(href="/login") login
+                    a(href="/videos/upload") Upload Video  
+            if loggedInUser
+                li 
+                    a(href="/user") account
+            else 
+                li 
+                    a(href="/login") login                 
     h1=pageTitle
