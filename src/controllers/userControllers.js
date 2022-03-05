@@ -1,5 +1,6 @@
 import User from "../models/Users";
 import bcrypt from "bcrypt";
+import fetch from "node-fetch";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
 export const postSignUp = async (req, res) => {
@@ -35,7 +36,12 @@ export const postSignUp = async (req, res) => {
     }    
 };
 
-export const getLogin = (req, res) => res.render("login", { pageTitle: "Login" }); 
+export const getLogin = (req, res) => {
+    if (req.session.loggedInUser) {
+        return res.render("protected", { pageTitle: "Log-out first to log-in with another account!" });
+    }
+    return res.render("login", { pageTitle: "Login" }); 
+}
 export const postLogin = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne( { email });
@@ -53,43 +59,92 @@ export const postLogin = async (req, res) => {
             errorMessage: "Wrong Password" 
         });
     }
-    req.session.loggedIn = true;
+    req.session.loggedInUser = true;
     req.session.user = user;
     return res.redirect("/");
 };
 
 export const account = (req, res) => {
+    console.log(req.session.user);
+    req.session.destroy();
     res.render("account", { pageTitle: "Account" });
 };
 
 export const startGithubLogin = (req, res) => {
-    const baseUrl = "https://github.com/login/oauth/authorize";
+    const baseURL = "https://github.com/login/oauth/authorize";
     const config = {
         client_id : process.env.GH_CLIENT,
         allow_signup : false,
-        scope : "read:user user:email",
+        scope: 'read:user user:email',
     }; 
-    const params = new URLSearchParams(config);
-    const finalUrl = `${baseUrl}?${params}`;
-    return res.redirect(finalUrl);
+    const params = new URLSearchParams(config).toString();
+    const finalURL = `${baseURL}?${params}`;
+    return res.redirect(finalURL);
 };
 
 export const finishGithubLogin = async (req, res) => {
-    const baseUrl = "https://github.com/login/oauth/access_token";
+    const baseURL = "https://github.com/login/oauth/access_token";
     const config = {
         client_id : process.env.GH_CLIENT,
         client_secret : process.env.GH_SECRET,
         code : req.query.code,
     }; 
     const params = new URLSearchParams(config).toString();
-    const finalUrl = `${baseUrl}?${params}`;
+    const finalURL = `${baseURL}?${params}`;
+    const apiURL = "https://api.github.com";
 
-    const data = await fetch(finalUrl, {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
+    const tokenRequest = await (
+        await fetch(finalURL, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+            }
+        })
+    ).json();
+    if ("access_token" in tokenRequest) {
+        const { access_token } = tokenRequest;
+        const userData = await (
+            await fetch(`${apiURL}/user`, {
+                headers: {
+                    Authorization: `token ${access_token}`,
+                },
+            })
+        ).json();
+        const emailData = await (
+            await fetch(`${apiURL}/user/emails`, {
+                headers: {
+                    Authorization: `token ${access_token}`,
+                },
+            })
+        ).json();
+        const emailObj = emailData.find(
+            (email) => email.primary === true && email.verified === true
+        );
+        if(!emailObj) {
+            return res.redirect("/login");
         }
-    });
-    const json = await data.json();
-    console.log(json);
+        let user = await User.findOne({ email: emailObj.email });
+        console.log(user);
+        if (!user) { 
+            console.log("not user");
+            user = await User.create({
+                email: emailObj.email,
+                password: "",
+                username: userData.login,
+                socialOnly: true,
+                avatarURL: userData.avatar_url 
+            });
+            console.log("created");
+        }
+        req.session.loggedInUser = true;
+        req.session.user = user;
+        return res.redirect("/");
+        } else {
+            return res.redirect("/login");
+        }
+    };
+
+export const logout = (req, res) => {
+    req.session.destroy();
+    return res.redirect("/");
 };
