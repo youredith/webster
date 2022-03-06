@@ -1,6 +1,8 @@
 import User from "../models/Users";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
+import { google } from "googleapis";
+import { token } from "morgan";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
 export const postSignUp = async (req, res) => {
@@ -66,15 +68,14 @@ export const postLogin = async (req, res) => {
 
 export const account = (req, res) => {
     console.log(req.session.user);
-    req.session.destroy();
     res.render("account", { pageTitle: "Account" });
 };
 
 export const startGithubLogin = (req, res) => {
     const baseURL = "https://github.com/login/oauth/authorize";
     const config = {
-        client_id : process.env.GH_CLIENT,
-        allow_signup : false,
+        client_id: process.env.GH_CLIENT,
+        allow_signup: false,
         scope: 'read:user user:email',
     }; 
     const params = new URLSearchParams(config).toString();
@@ -85,9 +86,9 @@ export const startGithubLogin = (req, res) => {
 export const finishGithubLogin = async (req, res) => {
     const baseURL = "https://github.com/login/oauth/access_token";
     const config = {
-        client_id : process.env.GH_CLIENT,
-        client_secret : process.env.GH_SECRET,
-        code : req.query.code,
+        client_id: process.env.GH_CLIENT,
+        client_secret: process.env.GH_SECRET,
+        code: req.query.code,
     }; 
     const params = new URLSearchParams(config).toString();
     const finalURL = `${baseURL}?${params}`;
@@ -124,7 +125,6 @@ export const finishGithubLogin = async (req, res) => {
             return res.redirect("/login");
         }
         let user = await User.findOne({ email: emailObj.email });
-        console.log(user);
         if (!user) { 
             console.log("not user");
             user = await User.create({
@@ -143,6 +143,66 @@ export const finishGithubLogin = async (req, res) => {
             return res.redirect("/login");
         }
     };
+
+/*google login*/
+
+export const startGoogleLogin = (req, res) => {
+    const baseURL = "https://accounts.google.com/o/oauth2/v2/auth";
+    const scopes = [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ];
+    const config = {
+        access_type: 'offline',
+        prompt: 'consent', //erase?
+        scope: scopes,
+    };
+    const params = new URLSearchParams(config).toString();
+    const finalURL = `${baseURL}?${params}`;
+    console.log(finalURL);
+    return res.redirect(finalURL);
+};
+
+/*test*/
+
+
+export const finishGoogleLogin = async (req, res) => {
+    const baseURL = "https://oauth2.googleapis.com/token";
+    const config = {
+        client_id: process.env.GOOGLE_CLIENT,
+        client_secret: process.env.GOOGLE_SECRET,
+        code: req.query.code,
+    };
+    const params = new URLSearchParams(config).toString();
+    const finalURL = `${baseURL}?${params}`;
+    const apiURL = "https://www.googleapis.com/oauth2/v1"; //맞나?
+
+    const tokenRequest = await (
+        await fetch(finalURL, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+            }
+        })
+    ).json();
+    console.log(tokenRequest);
+    // if ("access_token" in tokenRequest) {
+    //     const { access_token } = tokenRequest;
+    //     const userData = await (
+    //         await fetch(`${apiURL}/user`, {
+    //             headers: {
+    //                 Authorization: `Bearer ${access_token.id_token}`,
+    //               },
+    //         })
+    //     ).json();
+
+        
+
+
+
+    
+};
+
 
 export const logout = (req, res) => {
     req.session.destroy();
