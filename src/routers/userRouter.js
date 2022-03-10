@@ -1,5 +1,5 @@
 import express from "express";
-import { account, startGithubLogin, finishGithubLogin, startGoogleLogin, logout } from "../controllers/userControllers";
+import { account, startGithubLogin, finishGithubLogin, startGoogleLogin, finishGoogleLogin, logout } from "../controllers/userControllers";
 
 const userRouter = express.Router();
 
@@ -9,12 +9,7 @@ userRouter.get("/github/finish", finishGithubLogin);
 userRouter.get("/logout", logout);
 
 userRouter.get("/google/start", startGoogleLogin);
-userRouter.get("/google/finish", async function (req, res) {
-    console.log(req.query.code);
-    const displayName = await middleGoogleLogin(req.query.code);
-    console.log(displayName);
-   
-    res.redirect("http://localhost:4000");
-  });
+userRouter.get("/google/finish", finishGoogleLogin);
+
 
 export default userRouter;

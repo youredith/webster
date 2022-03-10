@@ -156,7 +156,7 @@ const { google } = require('googleapis');
 const googleConfig = {
   clientId: process.env.GOOGLE_CLIENT,
   clientSecret: process.env.GOOGLE_SECRET,
-  redirect: "http://localhost:4000/user/google/start",
+  redirect: "http://localhost:4000/user/google/finish",
 }; 
 const scopes = [
     'https://www.googleapis.com/auth/userinfo.email',
@@ -173,35 +173,54 @@ const url = oauth2Client.generateAuthUrl({
   access_type: 'offline', 
   scope: scopes
 });
+
+
  
 const getGooglePeopleApi = async (auth) => {    
-    return google.people({ 
+    const { people } = google.people({
         version: "v1",
         auth: await google.auth.getClient({
           keyFile,
           scopes
-       })
-    });
+        })
+      });
+    return people;
 };
-
-
-
 
 async function googleLogin(code) {
-  const { tokens } = await oauth2Client.getToken(code);
-  console.log(tokens);
-  oauth2Client.setCredentials(tokens);
-  oauth2Client.on('tokens', (tokens) => {
-    if(tokens.refresh_token){
-      console.log("리프레시 토큰 :", tokens.refresh_token);
-    }
-    console.log("액세스 토큰:", tokens.access_token);
-  });
-  const people = getGooglePeopleApi(oauth2Client);
-  const res = await people.people.get({ resourceName: 'people/me', personFields: 'emailAddresses,names' });
-  console.log(`Hello ${res.data.displayName}! ${res.data.id}`);
-  return res.data.displayName;
+    const { tokens } = await oauth2Client.getToken(code);
+    console.log(tokens);
+    oauth2Client.setCredentials(tokens);
+    oauth2Client.on('tokens', (tokens) => {
+      if(tokens.refresh_token){
+        console.log("리프레시 토큰 :", tokens.refresh_token);
+      }
+      console.log("액세스 토큰:", tokens.access_token);
+    });
 };
+export const last = async (req, res) => {
+    console.log(req.query.code);
+    const displayName = googleLogin(req.query.code);
+    console.log(req.query.code);
+    console.log(displayName);           
+    res.redirect("http://localhost:4000");
+  };
+export const finishGoogleLogin = async (req, res) => {
+    googleLogin();
+    const people = getGooglePeopleApi(oauth2Client);
+    const response = await people.people.get({ resourceName: 'people/me', personFields: 'emailAddresses,names' });
+    console.log(`Hello ${response.data.displayName}! ${response.data.id}`);
+    last();
+    return res.data.displayName;
+};
+async (req, res) => {
+        console.log(req.query.code);
+        const displayName = await googleLogin(req.query.code);
+        console.log(req.query.code);
+        console.log(displayName);           
+        res.redirect("http://localhost:4000");
+      };
+
 
 export const startGoogleLogin = (req, res) => {
     return res.redirect(url);
