@@ -2,7 +2,7 @@ import User from "../models/Users";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
 import { google } from "googleapis";
-import { token } from "morgan";
+import { PORT } from "../init";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
 export const postSignUp = async (req, res) => {
@@ -68,6 +68,9 @@ export const postLogin = async (req, res) => {
 
 export const account = (req, res) => {
     console.log(req.session.user);
+    if(req.session.user === undefined) {
+        return res.redirect("/login");
+    }
     res.render("account", { pageTitle: "Account" });
 };
 
@@ -84,7 +87,7 @@ export const startGithubLogin = (req, res) => {
 };
 
 export const finishGithubLogin = async (req, res) => {
-    const baseURL = "https://github.com/login/oauth/access_token";
+    const baseURL = "https://github.com/login/oauth/access_token";    
     const config = {
         client_id: process.env.GH_CLIENT,
         client_secret: process.env.GH_SECRET,
@@ -118,6 +121,7 @@ export const finishGithubLogin = async (req, res) => {
                 },
             })
         ).json();
+        
         const emailObj = emailData.find(
             (email) => email.primary === true && email.verified === true
         );
@@ -144,64 +148,80 @@ export const finishGithubLogin = async (req, res) => {
         }
     };
 
-/*google login*/
 
+/*google login */
+// const googleClient = {"web":{"client_id":"90662874128-ss7sjnr61nh87fhbq72m3vdoje68ll5u.apps.googleusercontent.com","project_id":"iron-potion-343211","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost:4000/user/google/finish"]}}
 export const startGoogleLogin = (req, res) => {
-    const baseURL = "https://accounts.google.com/o/oauth2/v2/auth";
-    const scopes = [
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/userinfo.email',
-      ];
     const config = {
-        access_type: 'offline',
-        prompt: 'consent', //erase?
-        scope: scopes,
+        clientId: process.env.GOOGLE_CLIENT,
+        clientSecret: process.env.GOOGLE_SECRET,
+        redirect: `http://localhost:${PORT}/user/google/finish`, 
     };
-    const params = new URLSearchParams(config).toString();
-    const finalURL = `${baseURL}?${params}`;
-    console.log(finalURL);
-    return res.redirect(finalURL);
+    const scopes = [
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+    ];
+    const oauth2Client = new google.auth.OAuth2(
+        config.clientId,
+        config.clientSecret,
+        config.redirect,
+    );
+    const url = oauth2Client.generateAuthUrl({
+        access_type: "offline",
+        scope: scopes,
+    });
+    console.log("start is finished");
+    return res.redirect(url);
 };
 
-/*test*/
+// function getGooglePeopleApi(auth) {
+//     return google.people({ version:'v1', auth });
+//   }
 
-
-export const finishGoogleLogin = async (req, res) => {
-    const baseURL = "https://oauth2.googleapis.com/token";
+export const finishGoogleLogin = async (req, res) => {    
+    const people = google.people('v1');
     const config = {
-        client_id: process.env.GOOGLE_CLIENT,
-        client_secret: process.env.GOOGLE_SECRET,
-        code: req.query.code,
+        clientId: process.env.GOOGLE_CLIENT,
+        clientSecret: process.env.GOOGLE_SECRET, 
+        redirect: `http://localhost:${PORT}/user/google/finish`, 
     };
-    const params = new URLSearchParams(config).toString();
-    const finalURL = `${baseURL}?${params}`;
-    const apiURL = "https://www.googleapis.com/oauth2/v1"; //맞나?
+    const main = async (req, res) =>{
+        const authClient = await auth.getClient();
+        google.options({auth: authClient});
 
-    const tokenRequest = await (
-        await fetch(finalURL, {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-            }
-        })
-    ).json();
-    console.log(tokenRequest);
-    // if ("access_token" in tokenRequest) {
-    //     const { access_token } = tokenRequest;
-    //     const userData = await (
-    //         await fetch(`${apiURL}/user`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${access_token.id_token}`,
-    //               },
-    //         })
-    //     ).json();
+        const response = await people.people.get({
+            personFields: `emailAddresses`,            
+            'requestMask.includeField': person.names,            
+            resourceNames: people/me,
+        });
+        console.log(response.data);
+    };
+    const oauth2Client = new google.auth.OAuth2(
+        config.clientId,
+        config.clientSecret,
+        config.redirect,
+    );  
+    main();
+    const googleLogin = async (code) => {
+        const tokens = await oauth2Client.getToken(code);
+        console.log(tokens.access_token);
+        oauth2Client.setCredentials(tokens);
+        oauth2Client.on('tokens', (tokens) => {
+          if(tokens.tokens.refresh_token){
+            console.log("리프레시 토큰 :", tokens.refresh_token);
+          }
+          console.log("액세스 토큰:", tokens.access_token);
+        });
+        
+      };
+
+    return res.redirect("/login");
+};
+
 
         
 
 
-
-    
-};
 
 
 export const logout = (req, res) => {

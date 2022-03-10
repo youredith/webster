@@ -1,4 +1,5 @@
 extends base
 
-block content 
-    h1 #{loggedInUser.username}'s Profile
+block content
+    if loggedInUser
+        h1 #{loggedInUser.username}'s Profile
