@@ -156,9 +156,8 @@ const { google } = require('googleapis');
 const googleConfig = {
   clientId: process.env.GOOGLE_CLIENT,
   clientSecret: process.env.GOOGLE_SECRET,
-  redirect: "http://localhost:4000/user/google/finish",
-};
- 
+  redirect: "http://localhost:4000/user/google/start",
+}; 
 const scopes = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
@@ -170,8 +169,7 @@ const oauth2Client = new google.auth.OAuth2(
   googleConfig.redirect
 );
  
-const url = oauth2Client.generateAuthUrl({
- 
+const url = oauth2Client.generateAuthUrl({ 
   access_type: 'offline', 
   scope: scopes
 });
@@ -186,7 +184,7 @@ const getGooglePeopleApi = async (auth) => {
     });
 };
  
-const googleLogin = async (code) => {
+async function googleLogin(code) {
   const { tokens } = await oauth2Client.getToken(code);
   console.log(tokens);
   oauth2Client.setCredentials(tokens);
@@ -196,20 +194,16 @@ const googleLogin = async (code) => {
     }
     console.log("액세스 토큰:", tokens.access_token);
   });
-  const plus = getGooglePeopleApi(oauth2Client);
+  const people = getGooglePeopleApi(oauth2Client);
   const res = await people.people.get({ resourceName: 'people/me', personFields: 'emailAddresses,names' });
   console.log(`Hello ${res.data.displayName}! ${res.data.id}`);
   return res.data.displayName;
 };
 
- 
-app.get("/auth/google/callback", async function (req, res) {
- 
-  const displayName = await googleLogin(req.query.code);
-  console.log(displayName);
- 
-  res.redirect("http://localhost:4000");
-});
+export const startGoogleLogin = (req, res) => {
+    return res.redirect(url);
+};
+
 
 
 
