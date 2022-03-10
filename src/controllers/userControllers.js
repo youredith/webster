@@ -174,7 +174,7 @@ const url = oauth2Client.generateAuthUrl({
   scope: scopes
 });
  
-const getGooglePeopleApi = async (auth) => {
+const getGooglePeopleApi = async (auth) => {    
     return google.people({ 
         version: "v1",
         auth: await google.auth.getClient({
@@ -183,7 +183,10 @@ const getGooglePeopleApi = async (auth) => {
        })
     });
 };
- 
+
+
+
+
 async function googleLogin(code) {
   const { tokens } = await oauth2Client.getToken(code);
   console.log(tokens);
@@ -203,8 +206,6 @@ async function googleLogin(code) {
 export const startGoogleLogin = (req, res) => {
     return res.redirect(url);
 };
-
-
 
 
 
