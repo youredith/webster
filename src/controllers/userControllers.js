@@ -1,7 +1,6 @@
 import User from "../models/Users";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
-import { google } from "googleapis";
 import { PORT } from "../init";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
@@ -151,75 +150,71 @@ export const finishGithubLogin = async (req, res) => {
 
 /*google login */
 // const googleClient = {"web":{"client_id":"90662874128-ss7sjnr61nh87fhbq72m3vdoje68ll5u.apps.googleusercontent.com","project_id":"iron-potion-343211","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost:4000/user/google/finish"]}}
-export const startGoogleLogin = (req, res) => {
-    const config = {
-        clientId: process.env.GOOGLE_CLIENT,
-        clientSecret: process.env.GOOGLE_SECRET,
-        redirect: `http://localhost:${PORT}/user/google/finish`, 
-    };
-    const scopes = [
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile',
-    ];
-    const oauth2Client = new google.auth.OAuth2(
-        config.clientId,
-        config.clientSecret,
-        config.redirect,
-    );
-    const url = oauth2Client.generateAuthUrl({
-        access_type: "offline",
-        scope: scopes,
+
+const { google } = require('googleapis');
+ 
+const googleConfig = {
+  clientId: process.env.GOOGLE_CLIENT,
+  clientSecret: process.env.GOOGLE_SECRET,
+  redirect: "http://localhost:4000/user/google/finish",
+};
+ 
+const scopes = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+];
+ 
+const oauth2Client = new google.auth.OAuth2(
+  googleConfig.clientId,
+  googleConfig.clientSecret,
+  googleConfig.redirect
+);
+ 
+const url = oauth2Client.generateAuthUrl({
+ 
+  access_type: 'offline', 
+  scope: scopes
+});
+ 
+function getGooglePeopleApi(auth) {
+    return google.people({ 
+        version: "v1",
+        auth: await google.auth.getClient({
+          keyFile,
+          scopes
+       })
     });
-    console.log("start is finished");
-    return res.redirect(url);
 };
-
-// function getGooglePeopleApi(auth) {
-//     return google.people({ version:'v1', auth });
-//   }
-
-export const finishGoogleLogin = async (req, res) => {    
-    const people = google.people('v1');
-    const config = {
-        clientId: process.env.GOOGLE_CLIENT,
-        clientSecret: process.env.GOOGLE_SECRET, 
-        redirect: `http://localhost:${PORT}/user/google/finish`, 
-    };
-    const main = async (req, res) =>{
-        const authClient = await auth.getClient();
-        google.options({auth: authClient});
-
-        const response = await people.people.get({
-            personFields: `emailAddresses`,            
-            'requestMask.includeField': person.names,            
-            resourceNames: people/me,
-        });
-        console.log(response.data);
-    };
-    const oauth2Client = new google.auth.OAuth2(
-        config.clientId,
-        config.clientSecret,
-        config.redirect,
-    );  
-    main();
-    const googleLogin = async (code) => {
-        const tokens = await oauth2Client.getToken(code);
-        console.log(tokens.access_token);
-        oauth2Client.setCredentials(tokens);
-        oauth2Client.on('tokens', (tokens) => {
-          if(tokens.tokens.refresh_token){
-            console.log("리프레시 토큰 :", tokens.refresh_token);
-          }
-          console.log("액세스 토큰:", tokens.access_token);
-        });
-        
-      };
-
-    return res.redirect("/login");
+ 
+const googleLogin = async (code) => {
+  const { tokens } = await oauth2Client.getToken(code);
+  console.log(tokens);
+  oauth2Client.setCredentials(tokens);
+  oauth2Client.on('tokens', (tokens) => {
+    if(tokens.refresh_token){
+      console.log("리프레시 토큰 :", tokens.refresh_token);
+    }
+    console.log("액세스 토큰:", tokens.access_token);
+  });
+  const plus = getGooglePeopleApi(oauth2Client);
+  const res = await people.people.get({ resourceName: 'people/me', personFields: 'emailAddresses,names' });
+  console.log(`Hello ${res.data.displayName}! ${res.data.id}`);
+  return res.data.displayName;
 };
+ 
+app.get('/login', function (req, res) {
+  res.redirect(url);
+});
+ 
+app.get("/auth/google/callback", async function (req, res) {
+ 
+  const displayName = await googleLogin(req.query.code);
+  console.log(displayName);
+ 
+  res.redirect("http://localhost:4000");
+});
 
 
-        
 
 
 
