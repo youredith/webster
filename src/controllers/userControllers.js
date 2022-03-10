@@ -201,10 +201,7 @@ const googleLogin = async (code) => {
   console.log(`Hello ${res.data.displayName}! ${res.data.id}`);
   return res.data.displayName;
 };
- 
-app.get('/login', function (req, res) {
-  res.redirect(url);
-});
+
  
 app.get("/auth/google/callback", async function (req, res) {
  
