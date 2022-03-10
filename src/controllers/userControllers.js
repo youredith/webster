@@ -176,7 +176,7 @@ const url = oauth2Client.generateAuthUrl({
   scope: scopes
 });
  
-function getGooglePeopleApi(auth) {
+const getGooglePeopleApi = async (auth) => {
     return google.people({ 
         version: "v1",
         auth: await google.auth.getClient({
@@ -213,7 +213,6 @@ app.get("/auth/google/callback", async function (req, res) {
  
   res.redirect("http://localhost:4000");
 });
-
 
 
 
