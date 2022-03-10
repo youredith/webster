@@ -1,6 +1,7 @@
 import User from "../models/Users";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
+import { google, keyFile } from "googleapis";
 import { PORT } from "../init";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
@@ -151,7 +152,6 @@ export const finishGithubLogin = async (req, res) => {
 /*google login */
 // const googleClient = {"web":{"client_id":"90662874128-ss7sjnr61nh87fhbq72m3vdoje68ll5u.apps.googleusercontent.com","project_id":"iron-potion-343211","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost:4000/user/google/finish"]}}
 
-const { google } = require('googleapis');
  
 const googleConfig = {
   clientId: process.env.GOOGLE_CLIENT,
@@ -201,7 +201,7 @@ async function googleLogin(code) {
 export const last = async (req, res) => {
     console.log(req.query.code);
     const displayName = googleLogin(req.query.code);
-    console.log(req.query.code);
+    
     console.log(displayName);           
     res.redirect("http://localhost:4000");
   };
