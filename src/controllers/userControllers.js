@@ -1,7 +1,8 @@
 import User from "../models/Users";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
-import { google, keyFile } from "googleapis";
+import { google } from "googleapis";
+import path from "path";
 import { PORT } from "../init";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
@@ -159,8 +160,7 @@ const googleConfig = {
   redirect: "http://localhost:4000/user/google/finish",
 }; 
 const scopes = [
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/profile.emails.read',
 ];
  
 const oauth2Client = new google.auth.OAuth2(
@@ -171,17 +171,16 @@ const oauth2Client = new google.auth.OAuth2(
  
 const url = oauth2Client.generateAuthUrl({ 
   access_type: 'offline', 
-  scope: scopes
+  scope: scopes,
 });
-
-
  
 const getGooglePeopleApi = async (auth) => {    
+    const keyFile = path.join(__dirname, "credentials.json")
     const { people } = google.people({
         version: "v1",
         auth: await google.auth.getClient({
-          keyFile,
-          scopes
+            keyFile,
+            scopes,
         })
       });
     return people;
@@ -206,12 +205,17 @@ export const last = async (req, res) => {
     res.redirect("http://localhost:4000");
   };
 export const finishGoogleLogin = async (req, res) => {
-    googleLogin();
-    const people = getGooglePeopleApi(oauth2Client);
-    const response = await people.people.get({ resourceName: 'people/me', personFields: 'emailAddresses,names' });
-    console.log(`Hello ${response.data.displayName}! ${response.data.id}`);
-    last();
-    return res.data.displayName;
+    try{
+        googleLogin();
+        const people = getGooglePeopleApi(oauth2Client);
+        console.log(people);
+        const response = await people.people.get({ resourceName: "people/me", personFields: "emailAddresses" });
+        console.log(`Hello ${response.data.displayName}! ${response.data.id}`);
+        last();
+        return res.data.displayName;
+    } catch(error) {
+        console.log(error);
+    }    
 };
 async (req, res) => {
         console.log(req.query.code);

@@ -20,3 +20,4 @@ export const privateMiddleware = (req, res, next) => {
 export const handleProtected = (req, res) => {
     return res.send("Welcome to private lounge.");
 };
+
