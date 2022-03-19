@@ -21,3 +21,6 @@ export const handleProtected = (req, res) => {
     return res.send("Welcome to private lounge.");
 };
 
+// export const httpsTohttpConverter = (req, res) => {
+
+// };
