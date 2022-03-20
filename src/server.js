@@ -4,7 +4,7 @@ import MongoStore from "connect-mongo";
 import rootRouter from "./routers/rootRouter";
 import userRouter from "./routers/userRouter";
 import videoRouter from "./routers/videoRouter";
-import { logger, privateMiddleware, handleProtected, localsMiddleware } from "./middlewares";
+import { logger, privateMiddleware, localsMiddleware, protectorMiddleware } from "./middlewares";
 
 const app = express();
 
@@ -27,7 +27,8 @@ app.use(
 
 app.use(privateMiddleware);
 app.use(localsMiddleware);
-app.get("/protected", handleProtected);
+// app.use(protectorMiddleware);
+app.use(privateMiddleware);
 
 app.use("/", rootRouter);
 app.use("/user", userRouter);

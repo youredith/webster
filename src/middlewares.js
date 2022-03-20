@@ -17,10 +17,17 @@ export const privateMiddleware = (req, res, next) => {
     next();
 };
 
-export const handleProtected = (req, res) => {
-    return res.send("Welcome to private lounge.");
+export const protectorMiddleware = (req, res, next) => {
+    if (req.session.loggedIn) {
+        next();
+    } else {
+        return res.redirect("/");
+    }
 };
-
-// export const httpsTohttpConverter = (req, res) => {
-
-// };
+export const publicOnlyMiddleware = (req, res, next) => {
+    if (!req.session.loggedInUser) {
+        next();
+    } else {
+        return res.redirect("/");
+    }
+};

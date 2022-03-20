@@ -3,3 +3,4 @@ extends base
 block content
     if loggedInUser
         h1 #{loggedInUser.username}'s Profile
+        a(href="/user/edit") Edit profile
