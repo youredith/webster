@@ -3,7 +3,8 @@ import {
     account, 
     startGithubLogin, finishGithubLogin, startGoogleLogin, finishGoogleLogin, 
     logout,
-    getEdit, postEdit
+    getEdit, postEdit,
+    getChangePassword, postChangePassword
 } from "../controllers/userControllers";
 import { protectorMiddleware } from "../middlewares";
 
@@ -16,5 +17,6 @@ userRouter.get("/google/start", startGoogleLogin);
 userRouter.get("/google/finish", finishGoogleLogin);
 userRouter.get("/logout", protectorMiddleware, logout);
 userRouter.route("/edit").all(protectorMiddleware).get(getEdit).post(postEdit);
+userRouter.route("/change_password").all(protectorMiddleware).get(getChangePassword).post(postChangePassword);
 
 export default userRouter;

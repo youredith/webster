@@ -10,7 +10,7 @@ export const postSignUp = async (req, res) => {
     const exists = await User.exists({ $or: [{ email }, { username }] });
 
     if (exists) {
-        return res.status(400).render("sign_up", {
+        return res.status(400).render("sign_up", {            
             pageTitle,
             errorMessage: "This username/email is already taken.",
         });
@@ -64,7 +64,6 @@ export const postLogin = async (req, res) => {
     return res.redirect("/");
 };
 export const account = (req, res) => {
-    console.log(req.session.user);
     if(req.session.user === undefined) {
         return res.redirect("/login");
     }
@@ -182,7 +181,6 @@ export const finishGoogleLogin = async (req, res) => {
             }
         })
     ).json();
-    console.log(tokenRequest);
     if ("access_token" in tokenRequest) {
         const access_token = tokenRequest.access_token;
         const id_token = tokenRequest.id_token;
@@ -223,10 +221,64 @@ export const logout = (req, res) => {
     return res.redirect("/");
 };
 
-export const getEdit = (req, res) => {
-    
+export const getEdit = (req, res) => {    
     return res.render("edit_profile", { pageTitle: "Edit Profile" });    
 };
-export const postEdit = (req, res) => {
-    return res.render("edit_profile");
+export const postEdit = async (req, res) => {
+    const { session : { user : { _id } } } = req;
+    const userBeforeUpdate = req.session.user;
+    const pageTitle = "Edit Profile";
+    const { email, username } = req.body;            
+    let errorMessageArray = [];
+    
+    if ( email !== userBeforeUpdate.email && User.exists( { email } ) ) {
+        errorMessageArray.push("This e-mail has already taken by someone.");
+    }
+    if ( username !== userBeforeUpdate.username && User.exists( { username } ) ) {
+        errorMessageArray.push("This username has already taken by someone.");
+    }
+    if ( errorMessageArray.length > 0 ) {
+        return res.status(400).render("edit_profile", { pageTitle, errorMessage: errorMessageArray });
+    } else if ( errorMessageArray.length === 0 ) {
+        return res.status(400).render("edit_profile", { pageTitle, errorMessage: "Nothing has changed."})
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(_id, { email, username }, { new: true });
+    req.session.user = updatedUser;
+    return res.redirect("/user");
+};
+
+
+
+
+
+
+
+
+export const getChangePassword = (req, res) => {   
+    console.log(req.session.user.password);
+    return res.render("change_password", { pageTitle: "Change Password" });    
+};
+
+
+
+
+
+
+export const postChangePassword = async (req, res) => {
+    console.log(req.session.user.id);
+    const loggedInUserId = req.session.user.id;
+    const { password, password2 } = req.body;
+    const user = await User.findOne( { loggedInUserId });
+    const ok = await bcrypt.compare(password, user.password);
+    
+    if (password !== password2) {
+        return res.status(400).render("change_password", { errorMessage: "Password doesn't match." });
+    }
+    if (!ok) {
+        return res.status(400).render("change_password", { errorMessage: "The password must be different from the previous one." });
+    }
+    console.log(password);
+    await User.findByIdAndUpdate();
+    return res.redirect("/user");
 };

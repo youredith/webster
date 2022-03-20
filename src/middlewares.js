@@ -18,10 +18,10 @@ export const privateMiddleware = (req, res, next) => {
 };
 
 export const protectorMiddleware = (req, res, next) => {
-    if (req.session.loggedIn) {
+    if (req.session.loggedInUser) {
         next();
     } else {
-        return res.redirect("/");
+        return res.redirect("/login");
     }
 };
 export const publicOnlyMiddleware = (req, res, next) => {

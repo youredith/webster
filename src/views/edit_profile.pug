@@ -1,9 +1,9 @@
 extends base
 
 block content 
+    span=errorMessage
     form(method="POST")        
-        input(placeholder="e-mail", type="email", name="email", value=loggedInUser.email)
-        input(placeholder="password", type="password", name="password", required)
-        input(placeholder="confirm password", type="password", name="password2", required)
+        input(placeholder="e-mail", type="email", name="email", value=loggedInUser.email)        
         input(placeholder="username", type="text", name="username", value=loggedInUser.username)
-        input(type="submit", value="Complete edit") 
+        input(type="submit", value="Complete edit")
+        a(href="/user/change_password") Change password

@@ -25,10 +25,7 @@ app.use(
     })
 );
 
-app.use(privateMiddleware);
 app.use(localsMiddleware);
-// app.use(protectorMiddleware);
-app.use(privateMiddleware);
 
 app.use("/", rootRouter);
 app.use("/user", userRouter);
