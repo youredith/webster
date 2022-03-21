@@ -225,21 +225,28 @@ export const getEdit = (req, res) => {
     return res.render("edit_profile", { pageTitle: "Edit Profile" });    
 };
 export const postEdit = async (req, res) => {
-    const { session : { user : { _id } } } = req;
+    const { session : { user : { _id } }, body: { email, username } } = req;
     const userBeforeUpdate = req.session.user;
     const pageTitle = "Edit Profile";
-    const { email, username } = req.body;            
+    const existingEmail = await User.exists( { email } );
+    const existingUsername = await User.exists( { username } );
+    const hasEmailChanged = Boolean(email === userBeforeUpdate.email);
+    const hasUsernameChanged = Boolean(username === userBeforeUpdate.username);
+
     let errorMessageArray = [];
-    
-    if ( email !== userBeforeUpdate.email && User.exists( { email } ) ) {
+    if ( email !== userBeforeUpdate.email && existingEmail ) {
         errorMessageArray.push("This e-mail has already taken by someone.");
     }
-    if ( username !== userBeforeUpdate.username && User.exists( { username } ) ) {
+    if ( username !== userBeforeUpdate.username && existingUsername ) {
         errorMessageArray.push("This username has already taken by someone.");
-    }
+    }  
     if ( errorMessageArray.length > 0 ) {
         return res.status(400).render("edit_profile", { pageTitle, errorMessage: errorMessageArray });
-    } else if ( errorMessageArray.length === 0 ) {
+    } else if (
+        errorMessageArray.length === 0 
+        && hasEmailChanged === true 
+        && hasUsernameChanged === true
+        ) {
         return res.status(400).render("edit_profile", { pageTitle, errorMessage: "Nothing has changed."})
     }
 
@@ -248,37 +255,25 @@ export const postEdit = async (req, res) => {
     return res.redirect("/user");
 };
 
-
-
-
-
-
-
-
 export const getChangePassword = (req, res) => {   
     console.log(req.session.user.password);
     return res.render("change_password", { pageTitle: "Change Password" });    
 };
 
-
-
-
-
-
 export const postChangePassword = async (req, res) => {
-    console.log(req.session.user.id);
-    const loggedInUserId = req.session.user.id;
-    const { password, password2 } = req.body;
-    const user = await User.findOne( { loggedInUserId });
-    const ok = await bcrypt.compare(password, user.password);
+    const { session : { user : { _id } }, body: { password, password2 } } = req;
+    const userBeforeUpdate = req.session.user;
+    const hashedPassword = await bcrypt.hash(password, 5);
+    console.log(hashedPassword);
+    const ok = Boolean(hashedPassword !== userBeforeUpdate.password);
     
     if (password !== password2) {
-        return res.status(400).render("change_password", { errorMessage: "Password doesn't match." });
-    }
+        return res.status(400).render("change_password", { errorMessage: "Password confirmation does not match." });
+    }    
     if (!ok) {
         return res.status(400).render("change_password", { errorMessage: "The password must be different from the previous one." });
-    }
-    console.log(password);
-    await User.findByIdAndUpdate();
+    }    
+    const updatedUser = await User.findByIdAndUpdate(_id, { password }, { new: true });
+    req.session.user = updatedUser;
     return res.redirect("/user");
 };

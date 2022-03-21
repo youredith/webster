@@ -1,4 +1,4 @@
-extends base
+extends ../base
 
 block content 
     span=errorMessage
@@ -6,4 +6,5 @@ block content
         input(placeholder="e-mail", type="email", name="email", value=loggedInUser.email)        
         input(placeholder="username", type="text", name="username", value=loggedInUser.username)
         input(type="submit", value="Complete edit")
-        a(href="/user/change_password") Change password
+        if !loggedInUser.socialOnly
+            a(href="/user/change_password") Change password
