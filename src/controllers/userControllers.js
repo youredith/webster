@@ -5,8 +5,15 @@ import { GLOBAL_URL_HTTP, GLOBAL_URL_HTTPS, PORT } from "../init";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
 export const postSignUp = async (req, res) => {
-    const { email, password, password2, username } = req.body;
     const pageTitle = "REGISTER";     
+    const { email, password, password2, username } = req.body;
+    let avatarFile = req.file;
+    if (!avatarFile) {
+        avatarFile = {
+            path: process.env.WEBSTER_MARK,
+        }
+    }
+    console.log(avatarFile);
     const exists = await User.exists({ $or: [{ email }, { username }] });
 
     if (exists) {
@@ -26,14 +33,12 @@ export const postSignUp = async (req, res) => {
         await User.create({
             email,
             password,
-            username
+            username,
+            avatarPath: avatarFile.path,
         });
         return res.redirect("/login");
     } catch(error) {
-        return res.status(400).render("sign_up", {
-            pageTitle,
-            errorMessage: "Password confirmation does not match.",
-        });
+        console.log(error);
     }    
 };
 export const getLogin = (req, res) => {
@@ -64,11 +69,8 @@ export const postLogin = async (req, res) => {
     return res.redirect("/");
 };
 export const account = (req, res) => {
-    if(req.session.user === undefined) {
-        return res.redirect("/login");
-    }
     console.log(req.session.user);
-    res.render("account", { pageTitle: "Account" });
+    res.render("users/account", { pageTitle: "Account" });
 };
 
 export const startGithubLogin = (req, res) => {
@@ -132,7 +134,7 @@ export const finishGithubLogin = async (req, res) => {
                 password: "",
                 username: userData.login,
                 socialOnly: true,
-                avatarURL: userData.avatar_url 
+                avatarPath: userData.avatar_url 
             });
             console.log("created");
         }
@@ -191,7 +193,6 @@ export const finishGoogleLogin = async (req, res) => {
                 },
             })
         ).json();
-        console.log(userData);
         const verifiedEmail = userData.verified_email;
         if(!verifiedEmail) {
             return res.redirect("/login");
@@ -204,7 +205,7 @@ export const finishGoogleLogin = async (req, res) => {
                 password: "",
                 username: userData.name,
                 socialOnly: true,
-                avatarURL: userData.picture, 
+                avatarPath: userData.picture, 
             });
             console.log("created");
         }
@@ -222,16 +223,25 @@ export const logout = (req, res) => {
 };
 
 export const getEdit = (req, res) => {    
-    return res.render("edit_profile", { pageTitle: "Edit Profile" });    
+    return res.render("users/edit_profile", { pageTitle: "Edit Profile" });    
 };
-export const postEdit = async (req, res) => {
-    const { session : { user : { _id } }, body: { email, username } } = req;
+export const postEdit = async (req, res) => {    
+    const { session : { user : { _id, avatarPath } }, body: { email, username }, file } = req;
     const userBeforeUpdate = req.session.user;
     const pageTitle = "Edit Profile";
     const existingEmail = await User.exists( { email } );
     const existingUsername = await User.exists( { username } );
-    const hasEmailChanged = Boolean(email === userBeforeUpdate.email);
-    const hasUsernameChanged = Boolean(username === userBeforeUpdate.username);
+    const hasEmailNotChanged = Boolean(email === userBeforeUpdate.email);
+    const hasUsernameNotChanged = Boolean(username === userBeforeUpdate.username);
+
+    let hasAvatarNotChanged = true;
+    let newAvatarPath = avatarPath;
+    if (file) {    
+        hasAvatarNotChanged = false;
+        newAvatarPath = file.path;
+    } else if (avatarPath === null) {
+        newAvatarPath = process.env.WEBSTER_MARK;
+    }
 
     let errorMessageArray = [];
     if ( email !== userBeforeUpdate.email && existingEmail ) {
@@ -239,41 +249,46 @@ export const postEdit = async (req, res) => {
     }
     if ( username !== userBeforeUpdate.username && existingUsername ) {
         errorMessageArray.push("This username has already taken by someone.");
-    }  
+    }    
     if ( errorMessageArray.length > 0 ) {
-        return res.status(400).render("edit_profile", { pageTitle, errorMessage: errorMessageArray });
+        return res.status(400).render("users/edit_profile", { pageTitle, errorMessage: errorMessageArray });
     } else if (
         errorMessageArray.length === 0 
-        && hasEmailChanged === true 
-        && hasUsernameChanged === true
+        && hasEmailNotChanged === true 
+        && hasUsernameNotChanged === true
+        && hasAvatarNotChanged === true
         ) {
-        return res.status(400).render("edit_profile", { pageTitle, errorMessage: "Nothing has changed."})
+        return res.status(400).render("users/edit_profile", { pageTitle, errorMessage: "Nothing has changed."})
     }
 
-    const updatedUser = await User.findByIdAndUpdate(_id, { email, username }, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(
+        _id, {
+        avatarPath : newAvatarPath,
+        email,
+        username
+    }, {new: true});
     req.session.user = updatedUser;
     return res.redirect("/user");
 };
 
 export const getChangePassword = (req, res) => {   
-    console.log(req.session.user.password);
-    return res.render("change_password", { pageTitle: "Change Password" });    
+    return res.render("users/change_password", { pageTitle: "Change Password" });    
 };
 
 export const postChangePassword = async (req, res) => {
+    const pageTitle = "Change Password";
     const { session : { user : { _id } }, body: { password, password2 } } = req;
-    const userBeforeUpdate = req.session.user;
-    const hashedPassword = await bcrypt.hash(password, 5);
-    console.log(hashedPassword);
-    const ok = Boolean(hashedPassword !== userBeforeUpdate.password);
+    const userBeforeUpdate = await User.findById(_id);    
+    const isItSamePWAsBefore = await bcrypt.compare(password, userBeforeUpdate.password);
     
     if (password !== password2) {
-        return res.status(400).render("change_password", { errorMessage: "Password confirmation does not match." });
+        return res.status(400).render("users/change_password", { pageTitle, errorMessage: "Password confirmation does not match." });
     }    
-    if (!ok) {
-        return res.status(400).render("change_password", { errorMessage: "The password must be different from the previous one." });
-    }    
-    const updatedUser = await User.findByIdAndUpdate(_id, { password }, { new: true });
-    req.session.user = updatedUser;
-    return res.redirect("/user");
+    if (isItSamePWAsBefore) {
+        return res.status(400).render("users/change_password", { pageTitle, errorMessage: "The password must be different from the previous one." });
+    }
+    
+    userBeforeUpdate.password = password;
+    await userBeforeUpdate.save();    
+    return res.redirect("/user/logout");
 };

@@ -1,3 +1,4 @@
+import { MulterError } from "multer";
 import Video from "../models/Video";
 
 export const videos = async (req, res) => {
@@ -20,7 +21,7 @@ export const getEdit = async (req, res) => {
   if (!video) {
     return res.status(404).render("404", { pageTitle: "Video not found."});
   }
-  return res.render("edit_video", { pageTitle: `Edit: ${video.title}`, video });  
+  return res.render("video_edit", { pageTitle: `Edit: ${video.title}`, video });  
 };
 export const postEdit = async (req, res) => {
   const { id } = req.params;
@@ -45,12 +46,14 @@ export const deleteVideo = async (req, res) => {
 };
 
 export const getUpload = (req, res) => {
-  return res.render("upload", { pageTitle: "Upload Video" });
+  return res.render("video_upload", { pageTitle: "Upload Video" });
 };
 export const postUpload = async (req, res) => {
+  const { path: filePath } = req.file;
   const { title, description, hashtags, tickers } = req.body;
   try {
     await Video.create({
+      filePath,
       title,
       description,
       hashtags: Video.formatHashtags(hashtags),
@@ -63,7 +66,7 @@ export const postUpload = async (req, res) => {
     return res.redirect("/videos");
   } catch(error) {
     console.log(error);
-    return res.render("upload", {
+    return res.render("video_upload", {
       pageTitle: "Upload Video",
       errorMessage: error._message,
     });

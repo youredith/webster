@@ -1,6 +1,10 @@
-extends base
+extends ../base
 
 block content
     if loggedInUser
-        h1 #{loggedInUser.username}'s Profile
+        img(src=loggedInUser.avatarPath, width="100", height="100")
+        span username : 
+        span=loggedInUser.username
+        span Sync Accounts 
+        span Sync Wallets
         a(href="/user/edit") Edit profile
