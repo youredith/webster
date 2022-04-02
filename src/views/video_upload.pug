@@ -6,7 +6,7 @@ block content
     form(method="POST", enctype="multipart/form-data")
         label(for="video") Video File
         input(type="file", accept="video/*", id="video", name="video", required)
-        input(placeholder="Title", type="text", name="title", required)
+        input(placeholder="Title", value=OriginalName, type="text", name="title", required)
         input(placeholder="Description", type="text", name="description")
         input(placeholder="Hashtags, separated by comma.", type="text", name="hashtags", required)
         input(placeholder="Tickers, separated by comma.", type="Text", name="tickers", required)

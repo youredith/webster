@@ -2,6 +2,7 @@ import User from "../models/Users";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
 import { GLOBAL_URL_HTTP, GLOBAL_URL_HTTPS, PORT } from "../init";
+import Video from "../models/Video";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
 export const postSignUp = async (req, res) => {
@@ -68,9 +69,14 @@ export const postLogin = async (req, res) => {
     req.session.user = user;
     return res.redirect("/");
 };
-export const account = (req, res) => {
-    console.log(req.session.user);
-    res.render("users/account", { pageTitle: "Account" });
+export const account = async (req, res) => {
+    const { id } = req.params;
+    const user = await User.findById(id).populate("videos");
+    console.log(user);
+    if ( !user ) {
+        return res.status(404).render("404", { pageTitle: "User not found."});
+    }
+    res.render("users/account", { pageTitle: "Account", user });
 };
 
 export const startGithubLogin = (req, res) => {
@@ -120,7 +126,7 @@ export const finishGithubLogin = async (req, res) => {
             })
         ).json();
         
-        const emailObj = emailData.find(
+        const emailObj = await emailData.find(
             (email) => email.primary === true && email.verified === true
         );
         if(!emailObj) {
@@ -286,8 +292,7 @@ export const postChangePassword = async (req, res) => {
     }    
     if (isItSamePWAsBefore) {
         return res.status(400).render("users/change_password", { pageTitle, errorMessage: "The password must be different from the previous one." });
-    }
-    
+    }    
     userBeforeUpdate.password = password;
     await userBeforeUpdate.save();    
     return res.redirect("/user/logout");

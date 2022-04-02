@@ -23,7 +23,7 @@ header
                     a(href="/videos/upload") Upload Video  
             if loggedInUser
                 li 
-                    a(href="/user") account
+                    a(href=`/user/${loggedInUser._id}`) account
                 li 
                     a(href="/user/logout") logout
             else 

@@ -1,4 +1,6 @@
-import { MulterError } from "multer";
+import { json } from "body-parser";
+import multer from "multer";
+import User from "../models/Users";
 import Video from "../models/Video";
 
 export const videos = async (req, res) => {
@@ -8,7 +10,8 @@ export const videos = async (req, res) => {
 
 export const watch = async (req, res) => {
   const { id } = req.params;
-  const video = await Video.findById(id);
+  const video = await Video.findById(id).populate("owner");
+  console.log(video);  
   if (!video) {
     return res.status(404).render("404", { pageTitle: "Video not found."});
   }
@@ -45,14 +48,15 @@ export const deleteVideo = async (req, res) => {
   return res.redirect("/videos");  
 };
 
-export const getUpload = (req, res) => {
+export const getUpload = async (req, res) => {
   return res.render("video_upload", { pageTitle: "Upload Video" });
 };
 export const postUpload = async (req, res) => {
+  const { user: { _id } } = req.session;
   const { path: filePath } = req.file;
   const { title, description, hashtags, tickers } = req.body;
   try {
-    await Video.create({
+    const newVideo = await Video.create({
       filePath,
       title,
       description,
@@ -62,11 +66,24 @@ export const postUpload = async (req, res) => {
         views: 0,
         ratings: 0,
       },
+      owner: _id,
     });
+
+    const fileSize = req.file.size;
+    if( fileSize > 500000000 ){
+      return res.status(500).render("video_upload", {
+        errorMessage: "File size should be less than 50Mb!",
+      });      
+    }
+    
+    const user = await User.findById(_id);
+    user.videos.push(newVideo._id);
+    user.save();
     return res.redirect("/videos");
+
   } catch(error) {
     console.log(error);
-    return res.render("video_upload", {
+    return res.status(400).render("video_upload", {
       pageTitle: "Upload Video",
       errorMessage: error._message,
     });

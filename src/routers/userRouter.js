@@ -10,7 +10,7 @@ import { avatarUpload, protectorMiddleware } from "../middlewares";
 
 const userRouter = express.Router();
 
-userRouter.all(protectorMiddleware).get("/", account);
+
 userRouter.get("/github/start", startGithubLogin);
 userRouter.get("/github/finish", finishGithubLogin);
 userRouter.get("/google/start", startGoogleLogin);
@@ -22,5 +22,6 @@ userRouter
     .get(getEdit)
     .post(avatarUpload.single("avatar"), postEdit);
 userRouter.route("/change_password").all(protectorMiddleware).get(getChangePassword).post(postChangePassword);
+userRouter.get("/:id", account);
 
 export default userRouter;

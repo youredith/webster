@@ -1,14 +1,16 @@
 import morgan from "morgan";
 import multer from "multer";
+import User from "./models/Users";
 
 export const localsMiddleware = (req, res, next) => {
     res.locals.siteTitle = "Websters";
     res.locals.path = req.path;
-    res.locals.loggedInUser = req.session.user;
+    res.locals.loggedInUser = req.session.user;      
     next();
 };
 
 export const logger = morgan("dev");
+
 
 export const privateMiddleware = (req, res, next) => {
     const url = req.url;
@@ -17,7 +19,6 @@ export const privateMiddleware = (req, res, next) => {
     }
     next();
 };
-
 export const protectorMiddleware = (req, res, next) => {
     if (req.session.loggedInUser) {
         next();
@@ -37,11 +38,11 @@ export const avatarUpload = multer ({
     dest: "uploads/avatars/",
     limits: {
         fileSize: 3000000,
-    }
+    },
 });
 export const videoUpload = multer({
     dest: "uploads/videos/",
     limits: {
-        fileSize: 50000000,
-    }
+        fileSize: 5000000000,
+    },
 });
