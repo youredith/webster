@@ -1,6 +1,5 @@
 import morgan from "morgan";
 import multer from "multer";
-import User from "./models/Users";
 
 export const localsMiddleware = (req, res, next) => {
     res.locals.siteTitle = "Websters";

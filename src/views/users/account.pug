@@ -10,7 +10,7 @@ block content
         span=user.email
     hr    
     div Uploaded Videos
-        each video in user.videos 
+        each video in user.videos
             +video(video)
         else 
             li There are no videos uploaded by this user.

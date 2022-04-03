@@ -11,7 +11,7 @@ export const postSignUp = async (req, res) => {
     let avatarFile = req.file;
     if (!avatarFile) {
         avatarFile = {
-            path: process.env.WEBSTER_MARK,
+            path: `/${process.env.WEBSTER_MARK}`,
         }
     }
     console.log(avatarFile);
@@ -35,7 +35,7 @@ export const postSignUp = async (req, res) => {
             email,
             password,
             username,
-            avatarPath: avatarFile.path,
+            avatarPath: "/"+ avatarFile.path,
         });
         return res.redirect("/login");
     } catch(error) {
@@ -228,7 +228,7 @@ export const logout = (req, res) => {
     return res.redirect("/");
 };
 
-export const getEdit = (req, res) => {    
+export const getEdit = async (req, res) => {
     return res.render("users/edit_profile", { pageTitle: "Edit Profile" });    
 };
 export const postEdit = async (req, res) => {    
@@ -244,9 +244,9 @@ export const postEdit = async (req, res) => {
     let newAvatarPath = avatarPath;
     if (file) {    
         hasAvatarNotChanged = false;
-        newAvatarPath = file.path;
+        newAvatarPath = "/" + file.path;
     } else if (avatarPath === null) {
-        newAvatarPath = process.env.WEBSTER_MARK;
+        newAvatarPath = `/${process.env.WEBSTER_MARK}`;
     }
 
     let errorMessageArray = [];
@@ -274,7 +274,7 @@ export const postEdit = async (req, res) => {
         username
     }, {new: true});
     req.session.user = updatedUser;
-    return res.redirect("/user");
+    return res.redirect(`/user/${_id}`);
 };
 
 export const getChangePassword = (req, res) => {   

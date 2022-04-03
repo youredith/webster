@@ -22,6 +22,6 @@ userRouter
     .get(getEdit)
     .post(avatarUpload.single("avatar"), postEdit);
 userRouter.route("/change_password").all(protectorMiddleware).get(getChangePassword).post(postChangePassword);
-userRouter.get("/:id", account);
+userRouter.route("/:id").all(protectorMiddleware).get(account);
 
 export default userRouter;

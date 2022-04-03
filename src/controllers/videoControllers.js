@@ -1,5 +1,3 @@
-import { json } from "body-parser";
-import multer from "multer";
 import User from "../models/Users";
 import Video from "../models/Video";
 
@@ -23,6 +21,10 @@ export const getEdit = async (req, res) => {
   const video = await Video.findById(id);
   if (!video) {
     return res.status(404).render("404", { pageTitle: "Video not found."});
+  }
+  console.log(video.owner, _id);
+  if ( String(video.owner) !== String(_id) ) {
+    return res.status(403).redirect("/");
   }
   return res.render("video_edit", { pageTitle: `Edit: ${video.title}`, video });  
 };
@@ -75,7 +77,7 @@ export const postUpload = async (req, res) => {
         errorMessage: "File size should be less than 50Mb!",
       });      
     }
-    
+
     const user = await User.findById(_id);
     user.videos.push(newVideo._id);
     user.save();
