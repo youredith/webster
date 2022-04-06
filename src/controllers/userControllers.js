@@ -2,7 +2,7 @@ import User from "../models/Users";
 import bcrypt from "bcrypt";
 import fetch from "node-fetch";
 import { GLOBAL_URL_HTTP, GLOBAL_URL_HTTPS, PORT } from "../init";
-import Video from "../models/Video";
+const WEBSTER_MARK = "../img/logos/marshmellow_logo.png";
 
 export const getSignUp = (req, res) => res.render("sign_up", { pageTitle: "REGISTER" });
 export const postSignUp = async (req, res) => {
@@ -11,7 +11,7 @@ export const postSignUp = async (req, res) => {
     let avatarFile = req.file;
     if (!avatarFile) {
         avatarFile = {
-            path: `/${process.env.WEBSTER_MARK}`,
+            path: `${WEBSTER_MARK}`,
         }
     }
     console.log(avatarFile);
@@ -246,7 +246,7 @@ export const postEdit = async (req, res) => {
         hasAvatarNotChanged = false;
         newAvatarPath = "/" + file.path;
     } else if (avatarPath === null) {
-        newAvatarPath = `/${process.env.WEBSTER_MARK}`;
+        newAvatarPath = `${WEBSTER_MARK}`;
     }
 
     let errorMessageArray = [];
